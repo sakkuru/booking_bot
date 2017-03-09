@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "botbuilder": "^3.7.0",
+    "datauri": "^1.0.5",
+    "qr-image": "^3.2.0",
     "restify": "^4.3.0"
   }
 }

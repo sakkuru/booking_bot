@@ -1,12 +1,14 @@
 const restify = require('restify');
 const builder = require('botbuilder');
+const qr = require('qr-image');
+const fs = require('fs');
 
 // use console
 // const connector = new builder.ConsoleConnector().listen();
 
 // use emulator
 const server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978, function() {
+server.listen(process.env.port || process.env.PORT || 3979, function() {
   console.log('%s listening to %s', server.name, server.url);
 });
 const connector = new builder.ChatConnector({
@@ -114,26 +116,39 @@ bot.dialog('/seatType', [
 
 bot.dialog('/confirm', [
   function(session) {
-    console.log("confirm", selected)
     session.send("%(numbers)s名様 %(zoneType)s %(seatType)s", selected);
     builder.Prompts.confirm(session, "以上でよろしいですか？");
   },
   function(session, results) {
-    console.log(results.response);
     if (!results.response) {
       session.beginDialog('/numbersOfParty');
     }
-    selected.seatType = results.response.entity;
-    session.send('かしこまりました。');
-    session.send('下記のQRコードをアプリで読み込んでください。');
 
-    const msg = new builder.Message(session)
-      .attachments([{
-        contentType: "image/jpeg",
-        contentUrl: "http://www.theoldrobots.com/images62/Bender-18.JPG"
-      }]);
-    session.send(msg);
-    session.send('アプリがお呼び出しするまで、少々お待ち下さい。ご利用ありがとうございました。');
+    session.send('かしこまりました。\n下記のQRコードをアプリで読み込んでください。');
+
+    const codeData = {
+      number: selected.numbers,
+      smoke: zoneTypeSelector[selected.zoneType].value,
+      table: seatTypeSelector[selected.seatType].value
+    }
+
+    // generate and send QR code image
+    const qr_png = qr.image(JSON.stringify(codeData), { type: 'png' });
+    qr_png.pipe(require('fs').createWriteStream('qrcode.png'));
+    const DataURI = require('datauri').promise;
+    DataURI('qrcode.png')
+      .then(content => {
+        console.log(content);
+        const msg = new builder.Message(session)
+          .attachments([{
+            contentType: "image/png",
+            contentUrl: content
+          }]);
+        session.send(msg);
+      })
+      .catch(err => { throw err; });
+
+    session.send('アプリがお呼び出しするまで、少々お待ちください。ご利用ありがとうございました。');
     session.endDialog();
   }
 ]);
