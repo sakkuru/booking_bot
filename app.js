@@ -1,23 +1,23 @@
-var restify = require('restify');
-var builder = require('botbuilder');
+const restify = require('restify');
+const builder = require('botbuilder');
 
 // use console
-// var connector = new builder.ConsoleConnector().listen();
+// const connector = new builder.ConsoleConnector().listen();
 
 // use emulator
-var server = restify.createServer();
+const server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function() {
   console.log('%s listening to %s', server.name, server.url);
 });
-var connector = new builder.ChatConnector({
+const connector = new builder.ChatConnector({
   appId: process.env.MICROSOFT_APP_ID,
   appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 server.post('/api/messages', connector.listen());
 
-var bot = new builder.UniversalBot(connector);
+const bot = new builder.UniversalBot(connector);
 
-var numbersSelector = {
+const numbersSelector = {
   "1人": { numbers: 1 },
   "2人": { numbers: 2 },
   "3人": { numbers: 3 },
@@ -127,7 +127,7 @@ bot.dialog('/confirm', [
     session.send('かしこまりました。');
     session.send('下記のQRコードをアプリで読み込んでください。');
 
-    var msg = new builder.Message(session)
+    const msg = new builder.Message(session)
       .attachments([{
         contentType: "image/jpeg",
         contentUrl: "http://www.theoldrobots.com/images62/Bender-18.JPG"
