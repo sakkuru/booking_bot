@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.17.1",
     "botbuilder": "^3.7.0",
     "datauri": "^1.0.5",
     "documentdb": "^1.10.2",

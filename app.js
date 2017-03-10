@@ -2,12 +2,17 @@ const restify = require('restify');
 const builder = require('botbuilder');
 const qr = require('qr-image');
 const fs = require('fs');
+const bodyParser = require('body-parser');
 
 // use console
 // const connector = new builder.ConsoleConnector().listen();
 
 // use emulator
 const server = restify.createServer();
+server.use(bodyParser.urlencoded({
+  extended: true
+}));
+server.use(bodyParser.json());
 server.listen(process.env.port || process.env.PORT || 3979, function() {
   console.log('%s listening to %s', server.name, server.url);
 });
@@ -59,6 +64,7 @@ const selected = {
 
 bot.dialog('/', [
   function(session) {
+    console.log(session.message.address)
     session.send('ようこそつばめグリルへ！');
     session.beginDialog('/numbersOfParty');
   },
@@ -75,7 +81,7 @@ bot.dialog('/', [
 
 bot.dialog('/numbersOfParty', [
   function(session) {
-    builder.Prompts.choice(session, "何名様でご利用ですか？", numbersSelector);
+    builder.Prompts.choice(session, "何名様でご利用ですか？", numbersSelector, { listStyle: 3 });
   },
   function(session, results, next) {
     selected.numbers = numbersSelector[results.response.entity].numbers;
@@ -94,7 +100,7 @@ bot.dialog('/numbersOfParty', [
 
 bot.dialog('/zoneType', [
   function(session) {
-    builder.Prompts.choice(session, "禁煙席と喫煙席はどちらをご希望ですか？", zoneTypeSelector);
+    builder.Prompts.choice(session, "禁煙席と喫煙席はどちらをご希望ですか？", zoneTypeSelector, { listStyle: 3 });
   },
   function(session, results) {
     selected.zoneType = results.response.entity;
@@ -105,7 +111,7 @@ bot.dialog('/zoneType', [
 
 bot.dialog('/seatType', [
   function(session) {
-    builder.Prompts.choice(session, "シートタイプはどちらをご希望ですか？", seatTypeSelector);
+    builder.Prompts.choice(session, "シートタイプはどちらをご希望ですか？", seatTypeSelector, { listStyle: 3 });
   },
   function(session, results) {
     selected.seatType = results.response.entity;
@@ -117,7 +123,7 @@ bot.dialog('/seatType', [
 bot.dialog('/confirm', [
   function(session) {
     session.send("%(numbers)s名様 %(zoneType)s %(seatType)s", selected);
-    builder.Prompts.confirm(session, "以上でよろしいですか？");
+    builder.Prompts.confirm(session, "以上でよろしいですか？", { listStyle: 3 });
   },
   function(session, results) {
     if (!results.response) {
