@@ -3,6 +3,8 @@ const builder = require('botbuilder');
 const qr = require('qr-image');
 const fs = require('fs');
 
+
+
 // use console
 // const connector = new builder.ConsoleConnector().listen();
 
@@ -127,10 +129,13 @@ bot.dialog('/confirm', [
     session.send('かしこまりました。\n下記のQRコードをアプリで読み込んでください。');
 
     const codeData = {
-      number: selected.numbers,
+      capacity: selected.numbers,
       smoke: zoneTypeSelector[selected.zoneType].value,
-      table: seatTypeSelector[selected.seatType].value
+      type: seatTypeSelector[selected.seatType].value
     }
+
+    // Add booking data to database
+    addNewBooking(codeData);
 
     // generate and send QR code image
     const qr_png = qr.image(JSON.stringify(codeData), { type: 'png' });
@@ -152,3 +157,96 @@ bot.dialog('/confirm', [
     session.endDialog();
   }
 ]);
+
+
+let counter = 20;
+
+const addNewBooking = bookingData => {
+  bookingData.id = counter.toString();
+  addNewDocument(bookingData);
+  counter++;
+}
+
+const DocumentClient = require('documentdb').DocumentClient;
+
+const host = "https://botable.documents.azure.com:443"; // Add your endpoint
+const masterKey = "Qp2YxwT8uNCTrhuKR3pUCnLkgbEkQWu1CcD0TQzAq67VCeqIKBWiyHRSwyNbQaejcYioptYY0JSraNNK1pByvQ=="; // Add the masterkey of the endpoint
+const client = new DocumentClient(host, { masterKey: masterKey });
+
+const databaseId = 'store';
+const collectionId = 'party';
+
+const databaseUrl = `dbs/${databaseId}`;
+const collectionUrl = `${databaseUrl}/colls/${collectionId}`;
+
+const getDatabase = () => {
+  console.log(`Getting database:\n${databaseId}\n`);
+
+  return new Promise((resolve, reject) => {
+    client.readDatabase(databaseUrl, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+}
+
+getCollection = () => {
+  console.log(`Getting collection:\n${collectionId}\n`);
+
+  return new Promise((resolve, reject) => {
+    client.readCollection(collectionUrl, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+}
+
+const getDocument = document => {
+  let documentUrl = `${collectionUrl}/docs/${document.id}`;
+  console.log(`Getting document:\n${document.id}\n`);
+
+  return new Promise((resolve, reject) => {
+    client.readDocument(documentUrl, { partitionKey: document.id }, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+const addNewDocument = document => {
+  let documentUrl = `${collectionUrl}/docs/${document.id}`;
+  console.log(`Adding document:\n${document.id}\n`);
+  console.log(document);
+
+  return new Promise((resolve, reject) => {
+    client.createDocument(collectionUrl, document, (err, created) => {
+      if (err) reject(err)
+      else resolve(created);
+    });
+
+  })
+}
+
+// debug code
+// getDatabase()
+//   .then(result => {
+//     console.log(result);
+//     return getCollection();
+//   }).then(result => {
+//     console.log(result);
+//     return addNewDocument({ id : "1" })
+//   }).then(result => {
+//     console.log(result);
+//     return getDocument({ id: "1" })
+//   }).then(res => {
+//     console.log(res)
+//   })
