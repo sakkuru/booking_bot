@@ -3,8 +3,6 @@ const builder = require('botbuilder');
 const qr = require('qr-image');
 const fs = require('fs');
 
-
-
 // use console
 // const connector = new builder.ConsoleConnector().listen();
 
@@ -14,8 +12,8 @@ server.listen(process.env.port || process.env.PORT || 3979, function() {
   console.log('%s listening to %s', server.name, server.url);
 });
 const connector = new builder.ChatConnector({
-  appId: process.env.MICROSOFT_APP_ID,
-  appPassword: process.env.MICROSOFT_APP_PASSWORD
+  appId: "e44703b5-da54-44c0-9fff-fb6545eb1112",
+  appPassword: "WMHRm7tyGnp1O5QP6HqbWRy"
 });
 server.post('/api/messages', connector.listen());
 
