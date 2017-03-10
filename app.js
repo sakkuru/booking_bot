@@ -126,7 +126,9 @@ bot.dialog('/confirm', [
 
     session.send('かしこまりました。\n下記のQRコードをアプリで読み込んでください。');
 
+    counter++;
     const codeData = {
+      id: counter.toString(),
       capacity: selected.numbers,
       smoke: zoneTypeSelector[selected.zoneType].value,
       type: seatTypeSelector[selected.seatType].value
@@ -160,9 +162,7 @@ bot.dialog('/confirm', [
 let counter = 20;
 
 const addNewBooking = bookingData => {
-  bookingData.id = counter.toString();
   addNewDocument(bookingData);
-  counter++;
 }
 
 const DocumentClient = require('documentdb').DocumentClient;
